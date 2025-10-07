@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <title>ⅩWebVNC</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e1e1e1ff;
+            color: #7e72c8;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .sideMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 110px;
+            height: 100%;
+            background: #fdfdfd;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px 10px 10px 8px;
+            box-sizing: border-box;
+            border-right: 1px solid #c0c0ff;
+        }
+
+        .sideMenu button {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            font-size: 13px;
+            border: 1px solid #887dc8ff;
+            border-radius: 6px;
+            background: #e9ecef;
+            color: #7e72c8;
+            text-shadow: 0 0 #b4b1d1ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            box-shadow: 2px 3px 7px;
+        }
+
+        .sideMenu button span {
+            display: inline-block;
+            width: 10px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 15px;
+        }
+
+        .sideMenu button:hover {
+            background: #dce0e4ff;
+        }
+
+        .sideMenu button:active {
+            background: #d7dce0ff;
+        }
+
+        .statusGroup {
+            margin-top: auto;
+            width: 88%;
+        }
+
+        .statusLabel {
+            font-size: 11px;
+            font-weight: bold;
+            margin: 8px 0 2px;
+            color: #7e72c8;
+        }
+
+        .status,
+        .dataStatus {
+            width: 98%;
+            padding: 6px;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .status.connected {
+            background: #d3f9d8;
+            color: #2b8a3e;
+            border-color: #b2f2bb;
+        }
+
+        .status.connecting {
+            background: #d3dbf9;
+            color: #2b388a;
+            border-color: #b2b5f2;
+        }
+
+        .status.disconnected {
+            background: #ffe3e3;
+            color: #c92a2a;
+            border-color: #ffa8a8;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 110px;
+            width: calc(100% - 110px);
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #e4e4e4ff;
+            overflow: auto;
+        }
+
+        .screen canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            background: #111;
+        }
+
+        @media (max-width: 768px) {
+            .sideMenu {
+                flex-direction: row;
+                width: 100%;
+                height: 60px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                justify-content: space-around;
+                padding: 8px;
+            }
+
+            .sideMenu button {
+                flex: 1;
+                margin: 0 4px;
+                height: 36px;
+                justify-content: center;
+            }
+
+            .statusGroup {
+                display: none;
+            }
+
+            .screen {
+                left: 0;
+                top: 60px;
+                width: 100%;
+                height: calc(100% - 60px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sideMenu">
+        <button onclick="disconnect()"><span>▣</span> Stop</button>
+        <button onclick="connect()"><span>⇋</span> Connect</button>
+        <button onclick="openFullscreen()"><span>⛶</span> Full Scr</button>
+
+        <div class="statusGroup">
+            <div id="qualityToggle" onclick="toggleQuality()"
+                style="cursor:pointer; padding:6px 10px; border-radius:6px;                background:#7e72c8; color:white; margin:4px 5px 28px 15px; text-align:center; font-size:12px;">
+                <span>⚙</span> SD
+            </div>
+            <div class="statusLabel">Connection</div>
+            <div class="status connecting" id="statusdiv">Connecting</div>
+
+            <div class="statusLabel">Total Data</div>
+            <div class="dataStatus" id="totalDataTransfered">0 MB</div>
+
+            <div class="statusLabel">FPS</div>
+            <div class="dataStatus" id="currentFPS">0</div>
+
+            <div class="statusLabel">Last Frame</div>
+            <div class="dataStatus" id="lastFrameSize">0x0</div>
+
+            <div class="statusLabel">Last Data</div>
+            <div class="dataStatus" id="lastTransferedData">0 KB</div>
+        </div>
+    </div>
+
+    <div class="screen" id="screenContainer">
+        <canvas id="canvas"></canvas>
+    </div>
+</body>
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    var config = null;
+    var mouseMoveTimeOut;
+    var mousedownPosition = { state: 0, x: 0, y: 0 };
+    var mouseScrolled = 0;
+    var webSocket = null;
+    var isConnected = false;
+    var serverPixelData = [];
+    var host = "192.168.0.15";
+    var port = "8000";
+    var fps_count = 0;
+    //app internal config variable
+    let doubleKeyPressed = 0;
+    let getPixelRGB = function () { return { r: 0, g: 0, b: 0 }; }
+    let totalDataSize = 0;
+    setTimeout(function () { connect(); }, 2000);
+
+    document.addEventListener('paste', handlePaste);
+    const sleep = (milis) => new Promise((resolve => setTimeout(() => resolve(), milis)));
+    async function handlePaste(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var text = e.clipboardData.getData('text/plain') || window.clipboardData.getData('Text');
+        if (webSocket != null && webSocket.readyState == 1) {
+            //update as soon as possible [make it server side]
+            for (var i = 0; i < text.length; i++) {
+                let key = getXkeySym(text[i]);
+                webSocket.send("K1" + key + "\0");
+                await sleep(80);
+            }
+        }
+    }
+
+
+    function updateCanvasCursor(data) {
+        let cursorMap = {
+            '0': 'default',       // default
+            '379': 'default',       // normal
+            '412': 'pointer',          // input line
+            '411': 'text',          // input line
+            '513': 'text',          // input line
+            '381': 'default',      // grabbing / move
+            '382': 'grabbing',      // grabbing / move
+            '385': 'e-resize',      // right side resize
+            '384': 'ne-resize',     // top-right resize
+            '383': 'n-resize',      // top resize
+            '390': 'nw-resize',     // top-left resize
+            '389': 'w-resize',      // left side resize
+            '387': 's-resize',      // bottom resize
+            '386': 'se-resize',     // bottom-right resize
+            '388': 'sw-resize'      // bottom-left resize
+        };
+        if (cursorMap[data]) {
+            canvas.style.cursor = cursorMap[data];
+        } else {
+            canvas.style.cursor = 'default';
+            console.log('INFO: unknow cursor', data);
+        }
+    }
+
+
+    function updateCanvas(data, serverJPEGData) {
+        var relative_x = 0;
+        var relative_y = 0;
+        var relative_width = 0;
+        var relative_height = 0;
+        var bitsPerLine = 0;
+        var transferedDataSize = 0;
+        var index = 3;
+        fps_count++;
+        while (data[index] != 32) { relative_x = relative_x * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_y = relative_y * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_width = relative_width * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_height = relative_height * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
+
+
+        let reader = new FileReader();
+        reader.onloadend = function () {
+            let img = document.createElement('img');
+            img.onload = function () {
+                ctx.drawImage(img, relative_x, relative_y, relative_width, relative_height);
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(new Blob([serverJPEGData], { type: 'image/jpeg' }));
+
+
+        //print last frame size
+        let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
+        totalDataSize += (dataSize / 1024);
+        lastFrameSize.innerText = relative_width + "x" + relative_height;
+        lastTransferedData.innerHTML = dataSize + "KB";
+        totalDataTransfered.innerHTML = totalDataSize.toFixed(2) + "MB";
+    }
+    function drawCanvas(data) {
+        var relative_x = 0;
+        var relative_y = 0;
+        var relative_width = 0;
+        var relative_height = 0;
+        var bitsPerLine = 0;
+        var transferedDataSize = 0;
+        var index = 3;
+
+        while (data[index] != 32) { relative_x = relative_x * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_y = relative_y * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_width = relative_width * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_height = relative_height * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
+
+        let pixels = ctx.getImageData(relative_x, relative_y, relative_width, relative_height);
+        let k = 0;
+        for (var y = 0; y < relative_height; y++) {
+            for (var x = 0; x < relative_width; x++) {
+                var pixelRGB = getPixelRGB(x, y, 0, bitsPerLine);
+                pixels.data[k++] = pixelRGB.r;
+                pixels.data[k++] = pixelRGB.g;
+                pixels.data[k++] = pixelRGB.b;
+                pixels.data[k++] = 255;
+            }
+        }
+        ctx.putImageData(pixels, relative_x, relative_y);
+
+        //print last frame size
+        let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
+        totalDataSize += (dataSize / 1024);
+        lastFrameSize.innerText = relative_width + "x" + relative_height;
+        lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
+        totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
+        totalDataTransfered.style.backgroundColor = "white";
+    }
+
+    function connect() {
+        if (webSocket != null && webSocket.readyState == 1) {
+            return;
+        }
+        statusdiv.innerText = "Initiated";
+        let ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host);
+        webSocket = ws;
+        ws.onerror = function (evt) {
+            statusdiv.innerText = "Errored";
+            statusdiv.className = 'status disconnected'
+        }
+        ws.onclose = function (e) {
+            statusdiv.innerText = "Disconnected";
+            statusdiv.className = 'status disconnected'
+        }
+        ws.onopen = function () {
+            statusdiv.innerText = "Connected";
+            statusdiv.className = 'status connected';
+            canvas.onmousedown = function (e) {
+                e.preventDefault();
+                mousedownPosition.x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                mousedownPosition.y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                return false;
+            }
+            canvas.onmouseup = function (e) {
+                if(e.button == 2) return;
+                e.preventDefault();
+                //if (mousedownPosition.state == 1) { mousedownPosition.state = 0; return false; }
+                var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                if (Math.abs(mousedownPosition.x - x) > 1 || Math.abs(mousedownPosition.y - y) > 1) {
+                    canvas.style.cursor = "grabbing";
+                    data = "D" + mousedownPosition.x + " " + mousedownPosition.y + " " + x + " " + y + " ";
+                    ws.send(data);
+                } else {
+                    canvas.style.cursor = "default";
+                    data = "C" + x + " " + y + " ";
+                    ws.send(data);
+                }
+                return false;
+            }
+            canvas.oncontextmenu = function (e) {
+                e.preventDefault();
+                mousedownPosition.state = 1;
+                var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                data = "R" + x + " " + y + " ";
+                ws.send(data);
+                return false;
+            };
+            canvas.onmousemove = function (e) {
+                clearTimeout(mouseMoveTimeOut);
+                mouseMoveTimeOut = setTimeout(function () {
+                    var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                    var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                    data = "M" + x + " " + y + " ";
+                    ws.send(data);
+                }, 20);
+            }
+            canvas.onwheel = function (e) {
+                e.preventDefault();
+                mouseScrolled += e.deltaY;
+                if (mouseScrolled > 50) {
+                    mouseScrolled = 0;
+                    ws.send("SD");
+                }
+                if (mouseScrolled < -50) {
+                    mouseScrolled = 0;
+                    ws.send("SU");
+                }
+                return false;
+            }
+            document.onkeydown = function (e) {
+                if (e.ctrlKey && e.keyCode != 17) {
+                    if (e.shiftKey && e.keyCode == 86) { doubleKeyPressed = 3; return; }
+                    e.preventDefault();
+                    let key1 = getXkeySym("Control");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
+                }
+                else if (e.shiftKey && e.keyCode != 16) {
+                    e.preventDefault();
+                    let key1 = getXkeySym("Shift");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
+                }
+                else if (e.altKey && e.keyCode != 18) {
+                    e.preventDefault();
+                    let key1 = getXkeySym("Alt");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
+                }
+                else {
+                    e.preventDefault();
+                }
+            }
+            document.onkeyup = function (e) {
+                e.preventDefault();
+                if (doubleKeyPressed) {
+                    doubleKeyPressed--;
+                    return;
+                }
+                let key = getXkeySym(e.key);
+                ws.send("K1" + key + "\0");
+            }
+            ws.onmessage = function (event) {
+                if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
+                    event.data.arrayBuffer().then(function (d) {
+                        let resp = new Uint8Array(d);
+                        let header = [];
+                        let i = 0;
+                        while (resp[i] != 10) {
+                            header[i] = resp[i];
+                            i++;
+                        }
+
+                        if (resp[0] == 85) {
+                            let pixelData = resp.slice(i + 1);
+                            drawCanvas(header);
+                        } else if (resp[0] == 86) {
+                            updateCanvas(header, resp.slice(i + 1));
+                        }
+                    });
+                }
+                else {
+                    let data = event.data.toString()
+                    if (data[0] == 'P') { updateCanvasCursor(data.split(' ')[1]); return; }
+                    data = data.replace(/'/ig, '"');
+                    data = JSON.parse(data);
+                    config = data;
+                    configCanvas();
+                    toggleQuality(config);
+                }
+            }
+        }
+    }
+    function disconnect() {
+        if (webSocket != null && webSocket.readyState == 1) {
+            webSocket.close();
+            statusdiv.innerText = "Disconnected";
+        }
+    }
+
+    setInterval(() => { currentFPS.innerHTML = fps_count; fps_count = 0; }, 1000);
+
+    let isHD = false;
+    function toggleQuality(config_) {
+        let div = document.getElementById('qualityToggle');
+        if (webSocket && webSocket.readyState === 1 && config_ == null) {
+            isHD = !isHD;
+            if (isHD) {
+                webSocket.send('QHD');
+                div.innerHTML = '<span>⚙</span> HD';
+                div.style.background = '#54b47deb'; // green
+            } else {
+                webSocket.send('QSD');
+                div.innerHTML = '<span>⚙</span> SD';
+                div.style.background = '#7e72c8'; // blue
+            }
+        } else if (config != null) {
+            isHD = (config.quality == 90);
+            if (isHD) {
+                div.innerHTML = '<span>⚙</span> HD';
+                div.style.background = '#54b47deb'; // green
+            } else {
+                div.innerHTML = '<span>⚙</span> SD';
+                div.style.background = '#7e72c8'; // blue
+            }
+        }
+    }
+    function configCanvas() {
+        canvas.width = config.width;
+        canvas.height = config.height;
+        //get relative width of canvas
+        var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
+        if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
+        else canvas.style.height = (screenContainer.offsetHeight) + "px";
+        //ctx.scale(config.width, config.height);
+        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    window.onresize = function () {
+        canvas.style.width = "auto"; canvas.style.height = "auto";
+        var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
+        if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
+        else canvas.style.height = (screenContainer.offsetHeight) + "px";
+    }
+    function openFullscreen() {
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen();
+        } else if (canvas.webkitRequestFullscreen) { /* Safari */
+            canvas.webkitRequestFullscreen();
+        } else if (canvas.msRequestFullscreen) { /* IE11 */
+            canvas.msRequestFullscreen();
+        }
+    }
+    canvas.onfullscreenchange = () => {
+        if (canvas.style.borderRadius == '0px')
+            canvas.style.borderRadius = '10px'; else canvas.style.borderRadius = '0px';
+    }
+    function getXkeySym(key) {
+        const specialMap = {
+            "ArrowUp": 0xFF52, // XK_Up
+            "ArrowDown": 0xFF54, // XK_Down
+            "ArrowLeft": 0xFF51, // XK_Left
+            "ArrowRight": 0xFF53, // XK_Right
+            "Enter": 0xFF0D, // XK_Return
+            "Escape": 0xFF1B, // XK_Escape
+            "Backspace": 0xFF08, // XK_BackSpace
+            "Tab": 0xFF09, // XK_Tab
+            "Control": 0xFFE3, // XK_Control_L
+            "Shift": 0xFFE1, // XK_Shift_L
+            "Alt": 0xFFE9, // XK_Alt_L
+            "Meta": 0xFFE7, // XK_Meta_L
+            "CapsLock": 0xFFE5, // XK_Caps_Lock
+            "F1": 0xFFBE,
+            "F2": 0xFFBF,
+            "F3": 0xFFC0,
+            "F4": 0xFFC1,
+            "F5": 0xFFC2,
+            "F6": 0xFFC3,
+            "F7": 0xFFC4,
+            "F8": 0xFFC5,
+            "F9": 0xFFC6,
+            "F10": 0xFFC7,
+            "F11": 0xFFC8,
+            "F12": 0xFFC9,
+            "Delete": 0xFFFF, // XK_Delete
+            "Home": 0xFF50,
+            "End": 0xFF57,
+            "PageUp": 0xFF55, // XK_Prior
+            "PageDown": 0xFF56, // XK_Next
+            "PrintScreen": 0xFF61, // XK_Print
+            "ScrollLock": 0xFF14,
+            "Pause": 0xFF13,
+            "Insert": 0xFF63,
+            "NumLock": 0xFF7F
+        };
+        if (specialMap.hasOwnProperty(key)) {
+            return specialMap[key];
+        }
+        if (typeof key === "string" && key.length === 1) {
+            return key.charCodeAt(0);
+        }
+        return null;
+    }
+</script>
+
+</html>
