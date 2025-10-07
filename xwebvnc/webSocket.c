@@ -158,7 +158,7 @@ void ws_p_sendRaw(Websocket *ws, int startByte, char *data1, char *data2, long d
         send(ws->client_socket[sid], data2, data2Size, 0); // for websocket data 2
         return;
     }
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < MAX_CLIENTS; i++)
     {
         if (ws->client_socket[i] == 0 || ws->ws_client_socket[i] == 0) continue;
         send(ws->client_socket[i], header, moded, 0); // for websocket header
@@ -432,6 +432,7 @@ void ws_connections(Websocket *ws) {
             close(ws->client_socket[i]);
             ws->client_socket[i] = 0;
             ws->ws_client_socket[i] = 0;
+            ws->clients--;
         }
     }
     if (ws->server_fd > 0) close(ws->server_fd);
