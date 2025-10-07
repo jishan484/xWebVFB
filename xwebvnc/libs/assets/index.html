@@ -487,6 +487,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
     }
 
     setInterval(() => { currentFPS.innerHTML = fps_count; fps_count = 0; }, 1000);
+    setInterval(() => { window.scrollBy(0, 0); }, 30000);
 
     let qualityMode = 20; // start at SD (20)
 
