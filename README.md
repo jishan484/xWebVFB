@@ -1,35 +1,58 @@
-X Server
---------
+# 🖥️ XWebVNC Server
 
-The X server accepts requests from client applications to create windows,
-which are (normally rectangular) "virtual screens" that the client program
-can draw into.
+**XWebVNC** is an efficient, headless **Xorg/Xvfb-based display server** with built-in **WebVNC** capability — allowing you to stream and interact with your Linux desktop directly from any modern web browser.
 
-Windows are then composed on the actual screen by the X server
-(or by a separate composite manager) as directed by the window manager,
-which usually communicates with the user via graphical controls such as buttons
-and draggable titlebars and borders.
+---
 
-For a comprehensive overview of X Server and X Window System, consult the
-following article:
-https://en.wikipedia.org/wiki/X_server
+## 🚀 Features
 
-All questions regarding this software should be directed at the
-Xorg mailing list:
+- 🧠 **Headless X Server** — Works as either **Xorg** or **Xvfb**, optimized for headless environments.
+- 🌐 **Built-in WebSocket & HTTP Server** — Serves both the web client and live framebuffer updates.
+- ⚡ **Real-Time Compression** — Supports:
+  - **LZ4** → Ultra-fast, low-latency compression
+  - **JPEG** → High compression ratio with good visual fidelity
+- 🪶 **Zero External Dependencies** — No x11vnc, no nginx, no proxies.
+- 🔒 **Lightweight & Secure** — Ideal for servers, embedded systems, or containerized setups.
+- 🧩 **Fully Self-Contained** — Includes built-in `index.html` client page.
 
-  https://lists.freedesktop.org/mailman/listinfo/xorg
+---
 
-The primary development code repository can be found at:
+## 🧪 Example Use Cases
+- Remote GUI access for headless Linux servers
+- Browser-based desktops in Docker or VMs
+- Lightweight remote development environments
+- Embedded Linux systems with browser-based control
 
-  https://gitlab.freedesktop.org/xorg/xserver
+# build and run
+example command `meson compile -C build && ./build/hw/vfb/Xvfb :1 -screen 0 1280x720x24 -web 80`
+> more details will be added soon
 
-For patch submission instructions, see:
+## 🧩 Architecture
 
-  https://www.x.org/wiki/Development/Documentation/SubmittingPatches
+```mermaid
+flowchart LR
+    subgraph Core["XWebVNC App"]
+        A1["Direct Framebuffer Capture"]
+        A2["Frame Compressor (LZ4 / JPEG)"]
+    end
 
-As with other projects hosted on freedesktop.org, X.Org follows its
-Code of Conduct, based on the Contributor Covenant. Please conduct
-yourself in a respectful and civilized manner when using the above
-mailing lists, bug trackers, etc:
+    subgraph Net["Network Layer"]
+        B1["Built-in HTTP Server\n(serves index.html, JS, assets)"]
+        B2["WebSocket Server\n(sends frames, receives input)"]
+    end
 
-  https://www.freedesktop.org/wiki/CodeOfConduct
+    subgraph Client["Browser Web Client"]
+        C1["UI (index.html + JS)"]
+        C2["Real-time Renderer\n(receives framebuffer)"]
+        C3["Input Handler\n(sends keyboard/mouse events)"]
+    end
+
+    A1 --> A2
+    A2 --> B2
+    A1 --> B1
+    B1 --> C1
+    B2 --> C2
+    C3 --> B2
+    C2 -. "Displays live desktop" .-> C1
+
+
