@@ -24,7 +24,7 @@ sudo apt -o Acquire::Check-Valid-Until=false update
 
 apt update
 
-apt-get install -y \
+apt-get install -y --allow-downgrades \
 	$EPHEMERAL \
 	autoconf \
 	automake \
