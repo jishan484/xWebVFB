@@ -16,7 +16,10 @@ EPHEMERAL="
 	"
 
 # Add bullseye-backports for the newer linux-libc-dev & meson packages
-echo 'deb [trusted=yes] http://archive.debian.org/debian bullseye-backports main' >> /etc/apt/sources.list
+echo 'deb [trusted=yes] http://archive.debian.org/debian bullseye main contrib non-free' | sudo tee -a /etc/apt/sources.list
+echo 'deb [trusted=yes] http://archive.debian.org/debian bullseye-updates main contrib non-free' | sudo tee -a /etc/apt/sources.list
+echo 'deb [trusted=yes] http://archive.debian.org/debian bullseye-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list
+
 sudo apt -o Acquire::Check-Valid-Until=false update
 
 apt update
