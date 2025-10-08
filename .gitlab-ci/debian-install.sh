@@ -216,7 +216,7 @@ rm -rf piglit/.git xts/.git piglit/tests/spec/ rendercheck/
 echo '[xts]' > piglit/piglit.conf
 echo 'path=/root/xts' >> piglit/piglit.conf
 
-find -name \*.a -o -name \*.o -o -name \*.c -o -name \*.h -o -name \*.la\* | xargs rm
+find -name \*.a -o -name \*.o -o -name \*.c -o -name \*.h -o -name \*.la\* | xargs rm -rf
 strip xts/xts5/*/.libs/*
 
 apt-get purge -y \
