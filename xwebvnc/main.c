@@ -1,5 +1,4 @@
 #include "input_priv.h"
-#include "os.h"
 #include "scrnintstr.h"
 #include "damage.h"
 #include "webvnc.h"
@@ -7,7 +6,7 @@
 #include <lz4.h>
 
 
-#define getDelay(fps) (1000000 / (fps))
+#define getDelay(fps) (1000000 / (fps + 1))
 
 
 static char *app_buffer;
@@ -229,7 +228,7 @@ void *ws_thread_func(void *arg) {
 }
 
 void *vnc_thread_func(void *arg) {
-  int delay = getDelay(11);
+  int delay = getDelay(15);
   while (app_running_indicator) {
     XWEBVNC_send_next_frame();
     usleep(delay);

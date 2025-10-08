@@ -1022,7 +1022,7 @@ FreeOsBuffers(OsCommPtr oc)
     if (AvailableInput == oc)
         AvailableInput = (OsCommPtr) NULL;
     if ((oci = oc->input)) {
-        if (FreeInputs) {
+        if (FreeInputs && oci->buffer && oci) {
             free(oci->buffer);
             free(oci);
         }

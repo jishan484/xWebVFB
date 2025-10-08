@@ -12,9 +12,9 @@ xwebvnc_inc = include_directories(
     '.'
 )
 
-openssl_dep = dependency('openssl', required: true)
-jpeg_dep = dependency('libjpeg', required: true)
-lz4_dep = dependency('liblz4', required: true)
+openssl_dep = dependency('openssl', static: true)
+jpeg_dep = dependency('libjpeg', static: true)
+lz4_dep = dependency('liblz4', static: true)
 
 
 # Link libxserver_dix using link_with

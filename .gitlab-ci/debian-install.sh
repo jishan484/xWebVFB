@@ -125,7 +125,7 @@ apt-get install -y \
 	xfonts-utils \
 	xkb-data \
 	xtrans-dev \
-	xutils-dev
+	xutils-dev xxd liblz4-dev libssl-dev libjpeg-dev
 
 .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
 
