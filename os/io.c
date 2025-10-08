@@ -213,9 +213,10 @@ NextAvailableInput(OsCommPtr oc)
         if (AvailableInput != oc) {
             ConnectionInputPtr aci = AvailableInput->input;
 
-            if (aci->size > BUFWATERMARK && aci && aci->buffer) {
+            if (aci && aci->size > BUFWATERMARK && aci->buffer) {
                 free(aci->buffer);
                 free(aci);
+                aci = NULL;
             }
             else {
                 aci->next = FreeInputs;
@@ -962,9 +963,10 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
     oco->count = 0;
     output_pending_clear(who);
 
-    if (oco->size > BUFWATERMARK && oco && oco->buf) {
+    if (oco && oco->size > BUFWATERMARK && oco->buf) {
         free(oco->buf);
         free(oco);
+        oco = NULL;
     }
     else {
         oco->next = FreeOutputs;
@@ -985,6 +987,7 @@ AllocateInputBuffer(void)
     oci->buffer = malloc(BUFSIZE);
     if (oci && !oci->buffer) {
         free(oci);
+        oci = NULL;
         return NULL;
     }
     oci->size = BUFSIZE;
@@ -1006,6 +1009,7 @@ AllocateOutputBuffer(void)
     oco->buf = calloc(1, BUFSIZE);
     if (oco && !oco->buf) {
         free(oco);
+        oco = NULL;
         return NULL;
     }
     oco->size = BUFSIZE;
@@ -1025,6 +1029,7 @@ FreeOsBuffers(OsCommPtr oc)
         if (FreeInputs && oci && oci->buffer) {
             free(oci->buffer);
             free(oci);
+            oci = NULL;
         }
         else {
             FreeInputs = oci;
@@ -1039,6 +1044,7 @@ FreeOsBuffers(OsCommPtr oc)
         if (FreeOutputs && oco && oco->buf) {
             free(oco->buf);
             free(oco);
+            oco = NULL;
         }
         else {
             FreeOutputs = oco;
@@ -1056,16 +1062,16 @@ ResetOsBuffers(void)
 
     while ((oci = FreeInputs)) {
         FreeInputs = oci->next;
-        if(!oci->buffer) continue;
+        if(!oci || !oci->buffer) continue;
         free(oci->buffer);
-        if(!oci) continue;
         free(oci);
+        oci = NULL;
     }
     while ((oco = FreeOutputs)) {
         FreeOutputs = oco->next;
-        if(!oco->buf) continue;
+        if(!oco || !oco->buf) continue;
         free(oco->buf);
-        if(!oco) continue;
         free(oco);
+        oco = NULL;
     }
 }
