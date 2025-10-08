@@ -213,7 +213,7 @@ NextAvailableInput(OsCommPtr oc)
         if (AvailableInput != oc) {
             ConnectionInputPtr aci = AvailableInput->input;
 
-            if (aci->size > BUFWATERMARK) {
+            if (aci->size > BUFWATERMARK && aci && aci->buffer) {
                 free(aci->buffer);
                 free(aci);
             }
@@ -962,7 +962,7 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
     oco->count = 0;
     output_pending_clear(who);
 
-    if (oco->size > BUFWATERMARK) {
+    if (oco->size > BUFWATERMARK && oco && oco->buf) {
         free(oco->buf);
         free(oco);
     }
@@ -983,7 +983,7 @@ AllocateInputBuffer(void)
     if (!oci)
         return NULL;
     oci->buffer = malloc(BUFSIZE);
-    if (!oci->buffer) {
+    if (oci && !oci->buffer) {
         free(oci);
         return NULL;
     }
@@ -1004,7 +1004,7 @@ AllocateOutputBuffer(void)
     if (!oco)
         return NULL;
     oco->buf = calloc(1, BUFSIZE);
-    if (!oco->buf) {
+    if (oco && !oco->buf) {
         free(oco);
         return NULL;
     }
@@ -1022,7 +1022,7 @@ FreeOsBuffers(OsCommPtr oc)
     if (AvailableInput == oc)
         AvailableInput = (OsCommPtr) NULL;
     if ((oci = oc->input)) {
-        if (FreeInputs && oci->buffer && oci) {
+        if (FreeInputs && oci && oci->buffer) {
             free(oci->buffer);
             free(oci);
         }
@@ -1036,7 +1036,7 @@ FreeOsBuffers(OsCommPtr oc)
         }
     }
     if ((oco = oc->output)) {
-        if (FreeOutputs) {
+        if (FreeOutputs && oco && oco->buf) {
             free(oco->buf);
             free(oco);
         }
@@ -1056,12 +1056,16 @@ ResetOsBuffers(void)
 
     while ((oci = FreeInputs)) {
         FreeInputs = oci->next;
+        if(!oci->buffer) continue;
         free(oci->buffer);
+        if(!oci) continue;
         free(oci);
     }
     while ((oco = FreeOutputs)) {
         FreeOutputs = oco->next;
+        if(!oco->buf) continue;
         free(oco->buf);
+        if(!oco) continue;
         free(oco);
     }
 }
