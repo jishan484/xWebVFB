@@ -144,6 +144,16 @@ ninja -C _build -j${FDO_CI_CONCURRENT:-4} install
 cd ..
 rm -rf drm
 
+#libjpeg
+git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git --depth 1
+cd libjpeg-turbo
+mkdir build && cd build
+cmake -G"Unix Makefiles" -DENABLE_SHARED=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=1 ..
+make -j$(nproc)
+sudo make install
+cd ../..
+rm -rf libjpeg-turbo/
+
 # xserver requires libxcvt
 git clone https://gitlab.freedesktop.org/xorg/lib/libxcvt.git --depth 1 --branch=libxcvt-0.1.0
 cd libxcvt
