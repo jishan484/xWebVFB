@@ -213,10 +213,9 @@ NextAvailableInput(OsCommPtr oc)
         if (AvailableInput != oc) {
             ConnectionInputPtr aci = AvailableInput->input;
 
-            if (aci && aci->size > BUFWATERMARK && aci->buffer) {
+            if (aci->size > BUFWATERMARK) {
                 free(aci->buffer);
                 free(aci);
-                aci = NULL;
             }
             else {
                 aci->next = FreeInputs;
@@ -963,10 +962,9 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
     oco->count = 0;
     output_pending_clear(who);
 
-    if (oco && oco->size > BUFWATERMARK && oco->buf) {
+    if (oco->size > BUFWATERMARK) {
         free(oco->buf);
         free(oco);
-        oco = NULL;
     }
     else {
         oco->next = FreeOutputs;
@@ -985,9 +983,8 @@ AllocateInputBuffer(void)
     if (!oci)
         return NULL;
     oci->buffer = malloc(BUFSIZE);
-    if (oci && !oci->buffer) {
+    if (!oci->buffer) {
         free(oci);
-        oci = NULL;
         return NULL;
     }
     oci->size = BUFSIZE;
@@ -1007,9 +1004,8 @@ AllocateOutputBuffer(void)
     if (!oco)
         return NULL;
     oco->buf = calloc(1, BUFSIZE);
-    if (oco && !oco->buf) {
+    if (!oco->buf) {
         free(oco);
-        oco = NULL;
         return NULL;
     }
     oco->size = BUFSIZE;
@@ -1026,10 +1022,9 @@ FreeOsBuffers(OsCommPtr oc)
     if (AvailableInput == oc)
         AvailableInput = (OsCommPtr) NULL;
     if ((oci = oc->input)) {
-        if (FreeInputs && oci && oci->buffer) {
+        if (FreeInputs) {
             free(oci->buffer);
             free(oci);
-            oci = NULL;
         }
         else {
             FreeInputs = oci;
@@ -1041,10 +1036,9 @@ FreeOsBuffers(OsCommPtr oc)
         }
     }
     if ((oco = oc->output)) {
-        if (FreeOutputs && oco && oco->buf) {
+        if (FreeOutputs) {
             free(oco->buf);
             free(oco);
-            oco = NULL;
         }
         else {
             FreeOutputs = oco;
@@ -1062,16 +1056,12 @@ ResetOsBuffers(void)
 
     while ((oci = FreeInputs)) {
         FreeInputs = oci->next;
-        if(!oci || !oci->buffer) continue;
         free(oci->buffer);
         free(oci);
-        oci = NULL;
     }
     while ((oco = FreeOutputs)) {
         FreeOutputs = oco->next;
-        if(!oco || !oco->buf) continue;
         free(oco->buf);
         free(oco);
-        oco = NULL;
     }
 }

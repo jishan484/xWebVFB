@@ -49,7 +49,6 @@ void input_init(Websocket * gws) {
 void process_key_press(int keycode, int is_pressed) {
     if(!app_running_indicator) return;
     QueueKeyboardEvents(kbd, is_pressed ? KeyPress : KeyRelease, keycode);
-    mieqProcessInputEvents();
 }
 
 void process_mouse_move(int x, int y) {
@@ -58,7 +57,6 @@ void process_mouse_move(int x, int y) {
     valuator_mask_set(mask, 0, x);  // axis 0 = X
     valuator_mask_set(mask, 1, y);  // axis 1 = Y
     QueuePointerEvents(mouse, MotionNotify,0, POINTER_ABSOLUTE, mask);
-    mieqProcessInputEvents();
     int ns = buildstr(buffer_, "P ", XWEBVNC_get_pointer_sprite_name());
     ws_sendRaw(gl_ws, 129, buffer_, ns, -1);
 }
@@ -68,7 +66,6 @@ void process_mouse_click(int button) {
     if(!app_running_indicator) return;
     QueuePointerEvents(mouse, ButtonPress, button, 0, NULL);
     QueuePointerEvents(mouse, ButtonRelease, button, 0, NULL);
-    mieqProcessInputEvents();
 }
 
 void process_mouse_drag(int x1, int y1, int x2, int y2) {
@@ -90,7 +87,6 @@ void process_mouse_scroll(int direction) {
     int button = (direction > 0) ? 4 : 5; // >0 = up, <0 = down
     QueuePointerEvents(mouse, ButtonPress, button, 0, NULL);
     QueuePointerEvents(mouse, ButtonRelease, button, 0, NULL);
-    mieqProcessInputEvents();
 }
 
 
