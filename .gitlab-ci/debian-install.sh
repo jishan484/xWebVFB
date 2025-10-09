@@ -22,6 +22,8 @@ echo 'deb [trusted=yes] http://archive.debian.org/debian bullseye-backports main
 
 sudo apt -o Acquire::Check-Valid-Until=false update
 
+sudo apt purge -y libjpeg-dev libjpeg-turbo8-dev libssl-dev
+
 apt update
 
 apt-get install -y --allow-downgrades \
