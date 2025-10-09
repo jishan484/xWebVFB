@@ -19,7 +19,6 @@ jobs:
               sudo bash .gitlab-ci/debian-install.sh
               sudo .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
               meson setup build
-              meson setup build -Dxorg=false -Dc_link_args="-static" -Ddefault_library=static --reconfigure
               meson compile -C build
           - name: arm64
             arch: arm64
