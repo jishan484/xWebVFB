@@ -13,7 +13,7 @@ xwebvnc_inc = include_directories(
 )
 
 openssl_dep = dependency('openssl', static: true)
-jpeg_dep = dependency('libjpeg', static: true)
+jpeg_dep = dependency('libjpeg', required: true)
 lz4_dep = dependency('liblz4', static: true)
 
 
