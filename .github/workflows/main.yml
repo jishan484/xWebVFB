@@ -17,7 +17,6 @@ jobs:
             runner: ubuntu-latest
             build_cmd: |
               sudo bash .gitlab-ci/debian-install.sh
-              sudo .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
               meson setup build
               meson compile -C build
           - name: arm64
