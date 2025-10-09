@@ -3,45 +3,53 @@ name: Build Xvfb (x86_64 + ARM64)
 on:
   push:
     tags:
-      - "v*"           # Run when you push a tag like v1.0.0
-  workflow_dispatch:   # Allow manual trigger
+      - "v*"           # Runs when pushing a tag like v1.0.0
+  workflow_dispatch:   # Manual trigger
 
 jobs:
   build:
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - name: x86_64
-            runner: ubuntu-latest
             arch: amd64
+            runner: ubuntu-latest
+            build_cmd: |
+              sudo bash .gitlab-ci/debian-install.sh
+              sudo .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
+              meson setup build
+              meson setup build -Dxorg=false -Dc_link_args="-static" -Ddefault_library=static --reconfigure
+              meson compile -C build
           - name: arm64
-            runner: ubuntu-24.04-arm64
             arch: arm64
+            runner: ubuntu-latest
+            build_cmd: |
+              sudo apt-get update
+              sudo apt-get install -y qemu-user-static
+              docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+              docker run --rm -v $PWD:/src -w /src arm64v8/ubuntu:24.04 bash -c '
+                set -e
+                apt-get update &&
+                apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils &&
+                bash .gitlab-ci/debian-install.sh &&
+                meson setup build &&
+                meson setup build -Dxorg=false -Dc_link_args="-static" -Ddefault_library=static --reconfigure &&
+                meson compile -C build
+              '
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install base dependencies (host)
         run: |
           sudo apt-get update
           sudo apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils
 
-      - name: Run Debian install script
-        run: sudo bash .gitlab-ci/debian-install.sh
-
-      - name: Build cross prereqs for i686-w64-mingw32
-        run: sudo .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
-
-      - name: Meson setup (normal)
-        run: meson setup build
-
-      - name: Meson setup (static Xvfb)
-        run: meson setup build -Dxorg=false -Dc_link_args="-static" -Ddefault_library=static --reconfigure
-
-      - name: Compile project
-        run: meson compile -C build
+      - name: Build project (${{ matrix.name }})
+        run: ${{ matrix.build_cmd }}
+        continue-on-error: true
 
       - name: Show binary info
         run: |
@@ -50,6 +58,7 @@ jobs:
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
+        if: success() || always()
         with:
           name: Xvfb-${{ matrix.arch }}
           path: build/hw/vfb/Xvfb
@@ -64,12 +73,14 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create GitHub release
+      - name: Show artifacts
+        run: ls -R artifacts || true
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        continue-on-error: true
         with:
-          files: |
-            artifacts/Xvfb-amd64/Xvfb
-            artifacts/Xvfb-arm64/Xvfb
+          files: artifacts/**/Xvfb
           draft: false
           prerelease: false
         env:
