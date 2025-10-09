@@ -70,7 +70,9 @@ void ws_p_sendRaw(Websocket *ws, int startByte, char *data1, char *data2, long d
 //------------------------------------------------//
 
 //
+void setup_wakeup_pipe(void);
 void XWEBVNC_init_input(void);
+void cleanup_wakeup_pipe(void);
 int  lookup_keycode(KeySym sym);
 void input_init(Websocket * gws);
 void process_mouse_move(int x, int y);

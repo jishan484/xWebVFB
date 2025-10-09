@@ -7,15 +7,17 @@
 #include "webvnc.h"
 
 
+int wake_pipe[2];
 int app_output_quality = 100;
 int force_full_screen_refresh = 0;
-static DeviceIntPtr kbd;
-static DeviceIntPtr mouse;
-static Websocket * gl_ws;
-static char buffer_[30];
-static ValuatorMask *mask = NULL;
 
+static DeviceIntPtr kbd;
+static char buffer_[30];
+static Websocket * gl_ws;
+static DeviceIntPtr mouse;
+static ValuatorMask *mask = NULL;
 static int *keysym_table[256] = {0};
+static void wakeup_handler(int fd, int ready, void *data);
 
 
 void add_mapping(long sym, int keycode) {
@@ -43,12 +45,14 @@ void input_init(Websocket * gws) {
     }
     if (!mask) return;
     // setup keycode mapping for current master keyboard
+    setup_wakeup_pipe();
     XWEBVNC_init_input();
 }
 
 void process_key_press(int keycode, int is_pressed) {
     if(!app_running_indicator) return;
     QueueKeyboardEvents(kbd, is_pressed ? KeyPress : KeyRelease, keycode);
+    write(wake_pipe[1], "x", 1);
 }
 
 void process_mouse_move(int x, int y) {
@@ -57,6 +61,7 @@ void process_mouse_move(int x, int y) {
     valuator_mask_set(mask, 0, x);  // axis 0 = X
     valuator_mask_set(mask, 1, y);  // axis 1 = Y
     QueuePointerEvents(mouse, MotionNotify,0, POINTER_ABSOLUTE, mask);
+    write(wake_pipe[1], "x", 1);
     int ns = buildstr(buffer_, "P ", XWEBVNC_get_pointer_sprite_name());
     ws_sendRaw(gl_ws, 129, buffer_, ns, -1);
 }
@@ -66,6 +71,7 @@ void process_mouse_click(int button) {
     if(!app_running_indicator) return;
     QueuePointerEvents(mouse, ButtonPress, button, 0, NULL);
     QueuePointerEvents(mouse, ButtonRelease, button, 0, NULL);
+    write(wake_pipe[1], "x", 1);
 }
 
 void process_mouse_drag(int x1, int y1, int x2, int y2) {
@@ -80,6 +86,7 @@ void process_mouse_drag(int x1, int y1, int x2, int y2) {
     }
     process_mouse_move(x2, y2);
     QueuePointerEvents(mouse, ButtonRelease, 1, 0, NULL);
+    write(wake_pipe[1], "x", 1);
 }
 
 void process_mouse_scroll(int direction) {
@@ -87,6 +94,7 @@ void process_mouse_scroll(int direction) {
     int button = (direction > 0) ? 4 : 5; // >0 = up, <0 = down
     QueuePointerEvents(mouse, ButtonPress, button, 0, NULL);
     QueuePointerEvents(mouse, ButtonRelease, button, 0, NULL);
+    write(wake_pipe[1], "x", 1);
 }
 
 
@@ -218,4 +226,22 @@ int buildstr(char *buff, const char *prefix, int val) {
     }
     buff[n] = '\0';
     return n;
+}
+
+
+void setup_wakeup_pipe(void) {
+    if (pipe(wake_pipe) < 0) {
+        FatalError("Failed to create wakeup pipe\n");
+    }
+    SetNotifyFd(wake_pipe[0], wakeup_handler, X_NOTIFY_READ, NULL);
+}
+
+static void wakeup_handler(int fd, int ready, void *data) {
+    char buf[8];
+    read(fd, buf, sizeof(buf));
+}
+
+void cleanup_wakeup_pipe(void) {
+    close(wake_pipe[0]);
+    close(wake_pipe[1]);
 }
