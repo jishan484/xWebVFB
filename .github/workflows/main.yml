@@ -18,15 +18,15 @@ jobs:
             arch: amd64
             runner: ubuntu-latest
             build_cmd: |
-              sudo bash .gitlab-ci/debian-install.sh
+              bash .gitlab-ci/debian-install.sh
               meson setup build
               meson compile -C build
           - name: arm64
             arch: arm64
             runner: ubuntu-latest
             build_cmd: |
-              sudo apt-get update
-              sudo apt-get install -y qemu-user-static
+              apt-get update
+              apt-get install -y qemu-user-static
               docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
               docker run --rm --platform linux/arm64 -v $PWD:/src -w /src arm64v8/ubuntu:24.04 bash -c '
                 set -e
@@ -44,8 +44,8 @@ jobs:
 
       - name: Install base dependencies (host)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils
+          apt-get update
+          apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils
 
       - name: Build project (${{ matrix.name }})
         run: ${{ matrix.build_cmd }}
