@@ -30,7 +30,7 @@ jobs:
               apt-get install -y crossbuild-essential-arm64 gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
               bash .gitlab-ci/debian-install.sh
               meson setup build-arm64 --cross-file .gitlab-ci/arm64-cross.txt
-              meson compile -C build-arm64
+              meson compile -C build-arm64 --verbose
 
     steps:
       - name: Checkout repository
