@@ -28,6 +28,7 @@ jobs:
               dpkg --add-architecture arm64
               apt-get update
               apt-get install -y crossbuild-essential-arm64 gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+              apt-get install -y libx11-dev:arm64 libxext-dev:arm64 libxau-dev:arm64 libxdmcp-dev:arm64
               bash .gitlab-ci/debian-install.sh
               meson setup build-arm64 --cross-file .gitlab-ci/arm64-cross.txt
               meson compile -C build-arm64 --verbose
