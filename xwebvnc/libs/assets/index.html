@@ -171,8 +171,8 @@
         <button onclick="openFullscreen()"><span>⛶</span> Full Scr</button>
 
         <div class="statusGroup">
-            <div id="qualityToggle" onclick="toggleQuality()"
-                style="cursor:pointer; padding:6px 10px; border-radius:6px;                background:#7e72c8; color:white; margin:4px 5px 28px 15px; text-align:center; font-size:12px;">
+            <div id="wakeLockStatus" style="color: #00804e;text-align: center;margin-left: 10px; display: none;">▣</div>
+            <div id="qualityToggle" onclick="toggleQuality()" style="cursor:pointer; padding:6px 10px; border-radius:6px;background:#7e72c8; color:white; margin:4px 5px 28px 15px; text-align:center; font-size:12px;">
                 <span>⚙</span> SD
             </div>
             <div class="statusLabel">Connection</div>
@@ -221,6 +221,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
     let totalDataSize = 0;
     let socket_manual_closed_flag = false;
     let canvas_event_set = false;
+    let wakeLockSentinel = null;
     setTimeout(function () { connect(); }, 2000);
 
     document.addEventListener('paste', handlePaste);
@@ -288,7 +289,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
             ctx.drawImage(bitmap, relative_x, relative_y, relative_width, relative_height);
             bitmap.close();
         });
-        
+
         //print last frame size
         let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
         totalDataSize += (dataSize / 1024);
@@ -352,6 +353,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
             if(!socket_manual_closed_flag) {
                 setTimeout(()=> connect(), 1500);
             }
+            releaseWakeLock();
         }
         ws.onopen = function () {
             statusdiv.innerText = "Connected";
@@ -480,6 +482,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
                     toggleQuality(config);
                 }
             }
+            requestWakeLock()
         }
     }
     function disconnect() {
@@ -659,6 +662,32 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
         pixelRGB.b = (pixelValue & 0x000000FF);
         return pixelRGB;
     }
+
+    async function requestWakeLock() {
+        try {
+            wakeLockSentinel = await navigator.wakeLock.request('screen');
+            wakeLockStatus.style.display = 'block';
+        } catch (err) {}
+    }
+    async function releaseWakeLock() {
+        try {
+            if (wakeLockSentinel && typeof wakeLockSentinel.release === 'function') {
+                await wakeLockSentinel.release();
+                wakeLockSentinel = null;
+                wakeLockStatus.style.display = 'none';
+            } else {
+                wakeLockSentinel = null;
+            }
+        } catch (err) {}    
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible' && !socket_manual_closed_flag) {
+            await requestWakeLock();
+        } else {
+            await releaseWakeLock();
+        }
+    });
 </script>
 
 </html>
