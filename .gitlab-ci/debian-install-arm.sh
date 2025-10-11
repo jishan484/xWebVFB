@@ -79,27 +79,3 @@ meson setup builddir --cross-file "$CROSS_FILE"
 meson compile -C builddir
 meson install -C builddir
 cd .. && rm -rf xorgproto
-
-git clone https://gitlab.freedesktop.org/wayland/wayland.git --depth 1 --branch=1.21.0
-cd wayland
-meson -Dtests=false -Ddocumentation=false -Ddtd_validation=false _build --cross-file "$CROSS_FILE"
-ninja -C _build -j$(nproc) install
-cd .. && rm -rf wayland
-
-git clone https://gitlab.freedesktop.org/wayland/wayland-protocols.git --depth 1 --branch=1.38
-cd wayland-protocols
-meson _build --cross-file "$CROSS_FILE"
-ninja -C _build -j$(nproc) install
-cd .. && rm -rf wayland-protocols
-
-git clone https://gitlab.freedesktop.org/libdecor/libdecor.git --depth 1 --branch=0.1.1
-cd libdecor
-meson _build -Ddemo=false -Dinstall_demo=false --cross-file "$CROSS_FILE"
-ninja -C _build -j$(nproc) install
-cd .. && rm -rf libdecor
-
-git clone https://gitlab.freedesktop.org/libinput/libei.git --depth 1 --branch=1.0.0
-cd libei
-meson setup _build -Dtests=disabled -Ddocumentation=[] -Dliboeffis=enabled --cross-file "$CROSS_FILE"
-ninja -C _build -j$(nproc) install
-cd .. && rm -rf libei
