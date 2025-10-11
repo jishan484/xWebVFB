@@ -283,8 +283,8 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
         while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
         while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
 
-        if(typeof ImageDecoder !== 'undefined') {
-            const decoder = new ImageDecoder({ data: buffer, type: 'image/jpeg' });
+        if(typeof ImageDecoder != undefined) {
+            const decoder = new ImageDecoder({ data: serverJPEGData, type: 'image/jpeg' });
             decoder.decode().then(result => {
                 ctx.drawImage(result.imageBitmap, relative_x, relative_y, relative_width, relative_height);
                 result.imageBitmap.close();
