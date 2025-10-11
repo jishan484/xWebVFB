@@ -220,7 +220,6 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
     let getPixelRGB = function () { return { r: 0, g: 0, b: 0 }; }
     let totalDataSize = 0;
     let socket_manual_closed_flag = false;
-    let canvas_event_set = false;
     let wakeLockSentinel = null;
     setTimeout(function () { connect(); }, 2000);
 
@@ -358,132 +357,129 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
         ws.onopen = function () {
             statusdiv.innerText = "Connected";
             statusdiv.className = 'status connected';
-            if(!canvas_event_set){
-                canvas_event_set = true;
-                canvas.onmousedown = function (e) {
-                    e.preventDefault();
-                    mousedownPosition.x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
-                    mousedownPosition.y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
-                    return false;
-                }
-                canvas.onmouseup = function (e) {
-                    if(e.button == 2) return;
-                    e.preventDefault();
-                    //if (mousedownPosition.state == 1) { mousedownPosition.state = 0; return false; }
-                    var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
-                    var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
-                    if (Math.abs(mousedownPosition.x - x) > 1 || Math.abs(mousedownPosition.y - y) > 1) {
-                        canvas.style.cursor = "grabbing";
-                        data = "D" + mousedownPosition.x + " " + mousedownPosition.y + " " + x + " " + y + " ";
-                        ws.send(data);
-                    } else {
-                        canvas.style.cursor = "default";
-                        data = "C" + x + " " + y + " ";
-                        ws.send(data);
-                    }
-                    return false;
-                }
-                canvas.oncontextmenu = function (e) {
-                    e.preventDefault();
-                    mousedownPosition.state = 1;
-                    var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
-                    var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
-                    data = "R" + x + " " + y + " ";
-                    ws.send(data);
-                    return false;
-                };
-                canvas.onmousemove = function (e) {
-                    clearTimeout(mouseMoveTimeOut);
-                    mouseMoveTimeOut = setTimeout(function () {
-                        var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
-                        var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
-                        data = "M" + x + " " + y + " ";
-                        ws.send(data);
-                    }, 20);
-                }
-                canvas.onwheel = function (e) {
-                    e.preventDefault();
-                    mouseScrolled += e.deltaY;
-                    if (mouseScrolled > 50) {
-                        mouseScrolled = 0;
-                        ws.send("SD");
-                    }
-                    if (mouseScrolled < -50) {
-                        mouseScrolled = 0;
-                        ws.send("SU");
-                    }
-                    return false;
-                }
-                document.onkeydown = function (e) {
-                    if (e.ctrlKey && e.keyCode != 17) {
-                        if (e.shiftKey && e.keyCode == 86) { doubleKeyPressed = 3; return; }
-                        e.preventDefault();
-                        let key1 = getXkeySym("Control");
-                        let key2 = getXkeySym(e.key);
-                        ws.send("K2" + key1 + " " + key2 + "\0");
-                        doubleKeyPressed = 2;
-                    }
-                    else if (e.shiftKey && e.keyCode != 16) {
-                        e.preventDefault();
-                        let key1 = getXkeySym("Shift");
-                        let key2 = getXkeySym(e.key);
-                        ws.send("K2" + key1 + " " + key2 + "\0");
-                        doubleKeyPressed = 2;
-                    }
-                    else if (e.altKey && e.keyCode != 18) {
-                        e.preventDefault();
-                        let key1 = getXkeySym("Alt");
-                        let key2 = getXkeySym(e.key);
-                        ws.send("K2" + key1 + " " + key2 + "\0");
-                        doubleKeyPressed = 2;
-                    }
-                    else {
-                        e.preventDefault();
-                    }
-                }
-                document.onkeyup = function (e) {
-                    e.preventDefault();
-                    if (doubleKeyPressed) {
-                        doubleKeyPressed--;
-                        return;
-                    }
-                    let key = getXkeySym(e.key);
-                    ws.send("K1" + key + "\0");
-                }  
+            canvas.onmousedown = function (e) {
+                e.preventDefault();
+                mousedownPosition.x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                mousedownPosition.y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                return false;
             }
-            ws.onmessage = function (event) {
-                if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
-                    event.data.arrayBuffer().then(function (d) {
-                        let resp = new Uint8Array(d);
-                        let header = [];
-                        let i = 0;
-                        while (resp[i] != 10) {
-                            header[i] = resp[i];
-                            i++;
-                        }
-
-                        if (resp[0] == 85) {
-                            let pixelData = resp.slice(i + 1);
-                            var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData);
-                            drawCanvas(header);
-                        } else if (resp[0] == 86) {
-                            updateCanvas(header, resp.slice(i + 1));
-                        }
-                    });
+            canvas.onmouseup = function (e) {
+                if(e.button == 2) return;
+                e.preventDefault();
+                //if (mousedownPosition.state == 1) { mousedownPosition.state = 0; return false; }
+                var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                if (Math.abs(mousedownPosition.x - x) > 1 || Math.abs(mousedownPosition.y - y) > 1) {
+                    canvas.style.cursor = "grabbing";
+                    data = "D" + mousedownPosition.x + " " + mousedownPosition.y + " " + x + " " + y + " ";
+                    ws.send(data);
+                } else {
+                    canvas.style.cursor = "default";
+                    data = "C" + x + " " + y + " ";
+                    ws.send(data);
+                }
+                return false;
+            }
+            canvas.oncontextmenu = function (e) {
+                e.preventDefault();
+                mousedownPosition.state = 1;
+                var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                data = "R" + x + " " + y + " ";
+                ws.send(data);
+                return false;
+            };
+            canvas.onmousemove = function (e) {
+                clearTimeout(mouseMoveTimeOut);
+                mouseMoveTimeOut = setTimeout(function () {
+                    var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
+                    var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
+                    data = "M" + x + " " + y + " ";
+                    ws.send(data);
+                }, 20);
+            }
+            canvas.onwheel = function (e) {
+                e.preventDefault();
+                mouseScrolled += e.deltaY;
+                if (mouseScrolled > 50) {
+                    mouseScrolled = 0;
+                    ws.send("SD");
+                }
+                if (mouseScrolled < -50) {
+                    mouseScrolled = 0;
+                    ws.send("SU");
+                }
+                return false;
+            }
+            document.onkeydown = function (e) {
+                if (e.ctrlKey && e.keyCode != 17) {
+                    if (e.shiftKey && e.keyCode == 86) { doubleKeyPressed = 3; return; }
+                    e.preventDefault();
+                    let key1 = getXkeySym("Control");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
+                }
+                else if (e.shiftKey && e.keyCode != 16) {
+                    e.preventDefault();
+                    let key1 = getXkeySym("Shift");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
+                }
+                else if (e.altKey && e.keyCode != 18) {
+                    e.preventDefault();
+                    let key1 = getXkeySym("Alt");
+                    let key2 = getXkeySym(e.key);
+                    ws.send("K2" + key1 + " " + key2 + "\0");
+                    doubleKeyPressed = 2;
                 }
                 else {
-                    let data = event.data.toString()
-                    if (data[0] == 'P') { updateCanvasCursor(data.split(' ')[1]); return; }
-                    data = data.replace(/'/ig, '"');
-                    data = JSON.parse(data);
-                    config = data;
-                    configCanvas();
-                    configGetPIxelRGB();
-                    toggleQuality(config);
+                    e.preventDefault();
                 }
             }
-            requestWakeLock()
+            document.onkeyup = function (e) {
+                e.preventDefault();
+                if (doubleKeyPressed) {
+                    doubleKeyPressed--;
+                    return;
+                }
+                let key = getXkeySym(e.key);
+                ws.send("K1" + key + "\0");
+            }  
         }
+        ws.onmessage = function (event) {
+            if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
+                event.data.arrayBuffer().then(function (d) {
+                    let resp = new Uint8Array(d);
+                    let header = [];
+                    let i = 0;
+                    while (resp[i] != 10) {
+                        header[i] = resp[i];
+                        i++;
+                    }
+
+                    if (resp[0] == 85) {
+                        let pixelData = resp.slice(i + 1);
+                        var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData);
+                        drawCanvas(header);
+                    } else if (resp[0] == 86) {
+                        updateCanvas(header, resp.slice(i + 1));
+                    }
+                });
+            }
+            else {
+                let data = event.data.toString()
+                if (data[0] == 'P') { updateCanvasCursor(data.split(' ')[1]); return; }
+                data = data.replace(/'/ig, '"');
+                data = JSON.parse(data);
+                config = data;
+                configCanvas();
+                configGetPIxelRGB();
+                toggleQuality(config);
+            }
+        }
+        requestWakeLock()
     }
     function disconnect() {
         if (webSocket != null && webSocket.readyState == 1) {
