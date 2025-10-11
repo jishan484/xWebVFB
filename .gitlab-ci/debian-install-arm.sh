@@ -75,7 +75,7 @@ cd .. && rm -rf libxcvt
 
 git clone https://gitlab.freedesktop.org/xorg/proto/xorgproto.git --depth 1 --branch=xorgproto-2024.1
 cd xorgproto
-meson setup builddir --cross-file "$CROSS_FILE"
+meson setup builddir -Ddocumentation=false --cross-file "$CROSS_FILE"
 meson compile -C builddir
 meson install -C builddir
 cd .. && rm -rf xorgproto
