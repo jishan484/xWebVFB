@@ -101,7 +101,6 @@ void XWEBVNC_close(void) {
     XWEBVNC_log("XServer on-close cleanup activity started");
 
     app_running_indicator = 0;
-    getDelay(5);
 
     ws_close(global_websocket);
     pthread_join(vnc_thread, NULL);
@@ -256,7 +255,8 @@ void XWEBVNC_damage_setup(ScreenPtr screen) {
 void myDamageReport(DamagePtr pDamage, RegionPtr pRegion, void *closure) {
     int nboxes;
     pixman_box16_t *boxes = pixman_region_rectangles(pRegion, &nboxes);
-    for (int i = 0; i < nboxes && app_running_indicator; i++) {
+    if(!app_running_indicator && !global_damage_queue) return;
+    for (int i = 0; i < nboxes; i++) {
         Rect r;
         r.x1 = boxes[i].x1;
         r.y1 = boxes[i].y1;

@@ -281,17 +281,20 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
         while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
         while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
 
-
-        let reader = new FileReader();
-        reader.onloadend = function () {
-            let img = document.createElement('img');
-            img.onload = function () {
-                ctx.drawImage(img, relative_x, relative_y, relative_width, relative_height);
-            };
-            img.src = reader.result;
-        };
-        reader.readAsDataURL(new Blob([serverJPEGData], { type: 'image/jpeg' }));
-
+        if(typeof ImageDecoder !== 'undefined') {
+            const decoder = new ImageDecoder({ data: buffer, type: 'image/jpeg' });
+            decoder.decode().then(result => {
+                ctx.drawImage(result.imageBitmap, relative_x, relative_y, relative_width, relative_height);
+                result.imageBitmap.close();
+                decoder.close();
+            })  
+        } else {
+            const blob = new Blob([serverJPEGData], { type: "image/jpeg" });
+            createImageBitmap(blob).then(bitmap => {
+                ctx.drawImage(bitmap, relative_x, relative_y, relative_width, relative_height);
+                bitmap.close();
+            });
+        }
 
         //print last frame size
         let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
@@ -530,30 +533,40 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
     function configCanvas() {
         canvas.width = config.width;
         canvas.height = config.height;
-        //get relative width of canvas
-        var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
-        if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
-        else canvas.style.height = (screenContainer.offsetHeight) + "px";
-        // ctx.scale(config.width, config.height);
+        
+        const hostAspect = config.width / config.height;
+        const containerAspect = screenContainer.offsetWidth / screenContainer.offsetHeight;
+        if (containerAspect >= hostAspect) {
+            canvas.style.height = screenContainer.offsetHeight;
+            canvas.style.width = Math.round(screenContainer.offsetHeight * hostAspect);
+        } else {
+            canvas.style.width = screenContainer.offsetWidth;
+            canvas.style.height = Math.round(screenContainer.offsetWidth * hostAspect);
+        }
         ctx.fillStyle = "rgba(0, 0, 0, 1)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     window.onresize = function () {
-        canvas.style.width = "auto"; canvas.style.height = "auto";
-        var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
-        if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
-        else canvas.style.height = (screenContainer.offsetHeight) + "px";
-    }
-    function openFullscreen() {
-        if (canvas.requestFullscreen) {
-            canvas.requestFullscreen();
-        } else if (canvas.webkitRequestFullscreen) { /* Safari */
-            canvas.webkitRequestFullscreen();
-        } else if (canvas.msRequestFullscreen) { /* IE11 */
-            canvas.msRequestFullscreen();
+        const hostAspect = config.width / config.height;
+        const containerAspect = screenContainer.offsetWidth / screenContainer.offsetHeight;
+        if (containerAspect >= hostAspect) {
+            canvas.style.height = screenContainer.offsetHeight;
+            canvas.style.width = Math.round(screenContainer.offsetHeight * hostAspect);
+        } else {
+            canvas.style.width = screenContainer.offsetWidth;
+            canvas.style.height = Math.round(screenContainer.offsetWidth * hostAspect);
         }
     }
-    canvas.onfullscreenchange = () => {
+    function openFullscreen() {
+        if (screenContainer.requestFullscreen) {
+            screenContainer.requestFullscreen();
+        } else if (screenContainer.webkitRequestFullscreen) { /* Safari */
+            screenContainer.webkitRequestFullscreen();
+        } else if (screenContainer.msRequestFullscreen) { /* IE11 */
+            screenContainer.msRequestFullscreen();
+        }
+    }
+    screenContainer.onfullscreenchange = () => {
         if (canvas.style.borderRadius == '0px')
             canvas.style.borderRadius = '10px'; else canvas.style.borderRadius = '0px';
     }
