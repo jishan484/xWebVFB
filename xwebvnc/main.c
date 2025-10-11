@@ -6,7 +6,7 @@
 #include <lz4.h>
 
 
-#define getDelay(fps) (1000000 / (fps + 1))
+#define getDelay(fps) (995000 / (fps)) //fixed drift applied
 
 
 static char *app_buffer;
