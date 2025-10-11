@@ -48,7 +48,7 @@ apt-get install -y --allow-downgrades \
   libxcb-xf86dri0-dev:arm64 libxcb-sync-dev:arm64 \
   libx11-xcb-dev:arm64 libxkbcommon0:arm64 \
   libfontenc-dev:arm64 libfreetype6-dev:arm64 libpng-dev:arm64 \
-  liblz4-dev:arm64 libjpeg62-turbo-dev:arm64 libssl-dev:arm64 libgl1-mesa-dev:arm64 libdri-dev:arm64 \
+  liblz4-dev:arm64 libjpeg62-turbo-dev:arm64 libssl-dev:arm64 libgl1-mesa-dev:arm64 \
   x11-xkb-utils xfonts-utils xkb-data xtrans-dev xutils-dev xxd autoconf automake libtool xsltproc fop
 
 cd /root
