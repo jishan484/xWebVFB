@@ -44,14 +44,12 @@ jobs:
   build_arm64:
     runs-on: self-hosted
     steps:
-      - name: Pull latest repository
-        run: |
-          cd ~/xWebVNC
-          git pull
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Compile with Meson
+      - name: Build project
         run: |
-          cd ~/xWebVNC
+          meson setup build
           meson compile -C build
 
       - name: Show binary info
