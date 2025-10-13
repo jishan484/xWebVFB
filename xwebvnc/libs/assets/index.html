@@ -171,7 +171,7 @@
         <button onclick="openFullscreen()"><span>⛶</span> Full Scr</button>
 
         <div class="statusGroup">
-            <div id="wakeLockStatus" style="color: #00804e;text-align: center;margin-left: 10px; display: none;">▣</div>
+            <div id="wakeLockStatus" style="color: #00804e;text-align: center;margin-left: 10px; display: none;">🔘</div>
             <div id="qualityToggle" onclick="toggleQuality()" style="cursor:pointer; padding:6px 10px; border-radius:6px;background:#7e72c8; color:white; margin:4px 5px 28px 15px; text-align:center; font-size:12px;">
                 <span>⚙</span> SD
             </div>
@@ -220,6 +220,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
     let getPixelRGB = function () { return { r: 0, g: 0, b: 0 }; }
     let totalDataSize = 0;
     let socket_manual_closed_flag = false;
+    let socket_reconnect_retry = 0;
     let wakeLockSentinel = null;
     setTimeout(function () { connect(); }, 2000);
 
@@ -336,6 +337,7 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
 
     function connect() {
         socket_manual_closed_flag = false;
+        socket_reconnect_retry = 0;
         if (webSocket != null && webSocket.readyState == 1) {
             return;
         }
@@ -349,8 +351,9 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
         ws.onclose = function (e) {
             statusdiv.innerText = "Disconnected";
             statusdiv.className = 'status disconnected'
-            if(!socket_manual_closed_flag) {
+            if(!socket_manual_closed_flag && socket_reconnect_retry < 5) {
                 setTimeout(()=> connect(), 1500);
+                socket_reconnect_retry++;
             }
             releaseWakeLock();
         }
