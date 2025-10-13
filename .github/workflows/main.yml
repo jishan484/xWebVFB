@@ -47,6 +47,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Restore Meson build cache
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: ${{ runner.os }}-meson-build-${{ hashFiles('**/meson.build') }}
+          restore-keys: |
+            ${{ runner.os }}-meson-build-
+
       - name: Build project
         run: |
           meson setup build
@@ -56,7 +64,7 @@ jobs:
         run: |
           file build/hw/vfb/Xvfb || true
           file build/hw/xfree/Xorg || true
-      
+
       - name: Prepare artifact files and name
         run: |
           FILES=""
