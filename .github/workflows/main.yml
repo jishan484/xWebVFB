@@ -63,7 +63,7 @@ jobs:
       - name: Show binary info
         run: |
           file build/hw/vfb/Xvfb || true
-          file build/hw/xfree/Xorg || true
+          file build/hw/xfree86/Xorg || true
 
       - name: Prepare artifact files and name
         run: |
@@ -73,8 +73,8 @@ jobs:
             FILES="$FILES build/hw/vfb/Xvfb"
             ARTIFACT_NAME="Xvfb"
           fi
-          if [ -f build/hw/xfree/Xorg ]; then
-            FILES="$FILES build/hw/xfree/Xorg"
+          if [ -f build/hw/xfree86/Xorg ]; then
+            FILES="$FILES build/hw/xfree86/Xorg"
             if [ -z "$ARTIFACT_NAME" ]; then
               ARTIFACT_NAME="Xorg"
             else

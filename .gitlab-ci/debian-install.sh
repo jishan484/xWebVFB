@@ -132,7 +132,7 @@ apt-get install -y --allow-downgrades \
 	xfonts-utils \
 	xkb-data \
 	xtrans-dev \
-	xutils-dev xxd liblz4-dev libssl-dev libjpeg62-turbo-dev
+	xutils-dev xxd liblz4-dev libssl-dev libjpeg62-turbo-dev libjpeg-dev
 
 .gitlab-ci/cross-prereqs-build.sh i686-w64-mingw32
 
