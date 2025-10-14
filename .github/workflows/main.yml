@@ -65,33 +65,20 @@ jobs:
           file build/hw/vfb/Xvfb || true
           file build/hw/xfree86/Xorg || true
 
-      - name: Prepare artifact files and name
-        run: |
-          FILES=""
-          ARTIFACT_NAME=""
-          if [ -f build/hw/vfb/Xvfb ]; then
-            FILES="$FILES build/hw/vfb/Xvfb"
-            ARTIFACT_NAME="Xvfb"
-          fi
-          if [ -f build/hw/xfree86/Xorg ]; then
-            FILES="$FILES build/hw/xfree86/Xorg"
-            if [ -z "$ARTIFACT_NAME" ]; then
-              ARTIFACT_NAME="Xorg"
-            else
-              ARTIFACT_NAME="${ARTIFACT_NAME}-Xorg"
-            fi
-          fi
-          echo "Files to upload: $FILES"
-          echo "Artifact name: $ARTIFACT_NAME"
-          echo "FILES=$FILES" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
-
-      - name: Upload artifacts
+      - name: Upload Xvfb (if present)
+        if: ${{ hashFiles('build/hw/vfb/Xvfb') != '' }}
         uses: actions/upload-artifact@v4
-        if: ${{ env.FILES != '' }}
         with:
-          name: ${{ env.ARTIFACT_NAME }}-arm64
-          path: ${{ env.FILES }}
+          name: Xvfb-arm64
+          path: build/hw/vfb/Xvfb
+
+      - name: Upload Xorg (if present)
+        if: ${{ hashFiles('build/hw/xfree86/Xorg') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xorg-arm64
+          path: build/hw/xfree86/Xorg
+
 
   release:
     runs-on: ubuntu-latest
