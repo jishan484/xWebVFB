@@ -250,14 +250,19 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
             '513': 'text',          // input line
             '381': 'default',      // grabbing / move
             '382': 'grabbing',      // grabbing / move
-            '385': 'e-resize',      // right side resize
-            '384': 'ne-resize',     // top-right resize
-            '383': 'n-resize',      // top resize
-            '390': 'nw-resize',     // top-left resize
-            '389': 'w-resize',      // left side resize
-            '387': 's-resize',      // bottom resize
-            '386': 'se-resize',     // bottom-right resize
-            '388': 'sw-resize'      // bottom-left resize
+            '385': 'n-resize',      // top side resize
+            '384': 'grabbing',     // top-right resize
+            '391': 'w-resize',      // left resize
+            '392': 'nw-resize',      // top-left resize
+            '390': 'sw-resize',     // bottom-left resize
+            '389': 's-resize',      // bottom side resize
+            '387': 'e-resize',      // right resize
+            '388': 'se-resize',     // bottom-right resize
+            '386': 'ne-resize',      // top-right resize
+            '410': 'pointer',
+            '413': 'text',
+            '414': 'default'
+
         };
         if (cursorMap[data]) {
             canvas.style.cursor = cursorMap[data];

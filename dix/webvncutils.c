@@ -22,7 +22,8 @@ void XWEBVNC_init_input(void) {
                 for (int level = 0; level < map->width; ++level) {
                     KeySym ks = xkb->map->syms[map->offset + level];
                     if (ks != NoSymbol) {
-                        add_mapping(ks, kc);
+                        if(!lookup_keycode(ks))
+                            add_mapping(ks, kc);
                     }
                 }
             }
