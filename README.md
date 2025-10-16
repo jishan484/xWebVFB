@@ -14,6 +14,7 @@
 - 🪶 **Zero External Dependencies** — No x11vnc, no nginx, no proxies.
 - 🔒 **Lightweight & Secure** — Ideal for servers, embedded systems, or containerized setups.
 - 🧩 **Fully Self-Contained** — Includes built-in `index.html` client page.
+- 🖱️**local mouse** -> use local mouse like few good webvnc app
 
 ---
 
