@@ -1,0 +1,42 @@
+name: Manually Publish latest release
+
+on:
+  workflow_dispatch:    # Run manually from GitHub Actions UI
+
+jobs:
+  release-latest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # Needed to get all tags
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)")
+          echo "Latest tag: $latest_tag"
+          echo "tag=$latest_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download latest artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build-and-release.yml    # Name of your main build workflow
+          branch: main                       # Or 'master' / whichever branch
+          run_number: latest
+          path: artifacts
+
+      - name: Show downloaded artifacts
+        run: ls -R artifacts || true
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          files: artifacts/*/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
