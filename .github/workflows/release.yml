@@ -1,7 +1,7 @@
-name: Manually Publish latest release
+name: Publish latest release
 
 on:
-  workflow_dispatch:    # Run manually from GitHub Actions UI
+  workflow_dispatch:
 
 jobs:
   release-latest:
@@ -11,7 +11,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0    # Needed to get all tags
+          fetch-depth: 0
 
       - name: Get latest tag
         id: get_tag
@@ -23,8 +23,7 @@ jobs:
       - name: Download latest artifacts
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: Build Xvfb (x86_64 + ARM64)    # Name of your main build workflow
-          branch: main                       # Or 'master' / whichever branch
+          workflow: Build Xvfb (x86_64 + ARM64)
           run_number: latest
           path: artifacts
 
