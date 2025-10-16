@@ -23,7 +23,7 @@ jobs:
       - name: Download latest artifacts
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: main.yml    # Name of your main build workflow
+          workflow: Build Xvfb (x86_64 + ARM64)    # Name of your main build workflow
           branch: main                       # Or 'master' / whichever branch
           run_number: latest
           path: artifacts
