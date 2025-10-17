@@ -53,6 +53,16 @@ jobs:
           echo "Downloaded artifacts:"
           ls -R artifacts
 
+      - name: Zip top-level artifact folders
+        run: |
+          cd artifacts
+          for folder in */ ; do
+            folder_name=$(basename "$folder")
+            zip -r "${folder_name}.zip" "$folder"
+          done
+          echo "Zipped artifacts:"
+          ls -lh *.zip
+
       - name: Create or update release
         id: create_release
         env:
@@ -73,7 +83,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          for file in $(find artifacts -type f); do
-            echo "Uploading $file..."
-            gh release upload "$TAG" "$file" --clobber
+          for zip_file in artifacts/*.zip; do
+            echo "Uploading $zip_file..."
+            gh release upload "$TAG" "$zip_file" --clobber
           done
