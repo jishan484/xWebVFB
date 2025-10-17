@@ -9,15 +9,14 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install GitHub CLI
         run: sudo apt-get update && sudo apt-get install -y gh jq
-
-      - name: Authenticate GH CLI
-        run: gh auth setup-git && echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Get latest successful build run ID
         id: get_run
@@ -38,13 +37,13 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts to release
         run: |
@@ -52,5 +51,3 @@ jobs:
             echo "Uploading $file..."
             gh release upload "${{ github.ref_name }}" "$file" --clobber
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
