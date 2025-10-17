@@ -19,7 +19,7 @@ jobs:
       - name: Install base dependencies (host)
         run: |
           apt-get update
-          apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils
+          apt-get install -y meson ninja-build pkg-config python3 python3-pip build-essential git x11-xkb-utils libjpeg-dev
 
       - name: Build project
         run: |
