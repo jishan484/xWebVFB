@@ -32,14 +32,21 @@ jobs:
       - name: Show binary info
         run: |
           file build/hw/vfb/Xvfb || true
-          ls -lh build/hw/vfb/Xvfb || true
+          file build/hw/xfree86/Xorg || true
 
-      - name: Upload build artifact
+      - name: Upload build artifact XVFB
         uses: actions/upload-artifact@v4
         if: success() || always()
         with:
           name: Xvfb_x86
           path: build/hw/vfb/Xvfb
+
+      - name: Upload Xorg (if present)
+        if: ${{ hashFiles('build/hw/xfree86/Xorg') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xorg-x86
+          path: build/hw/xfree86/Xorg
 
   build_arm64:
     runs-on: self-hosted
