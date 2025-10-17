@@ -8,23 +8,34 @@ on:
 
 jobs:
   release:
-    name: Create GitHub Release and Upload Artifacts
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh jq
 
-      - name: List downloaded artifacts
-        run: ls -R artifacts || true
+      - name: Authenticate GH CLI
+        run: gh auth setup-git && echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      # Step 1: Create a release for the current tag
-      - name: Create GitHub Release
+      - name: Get latest successful build run ID
+        id: get_run
+        run: |
+          run_id=$(gh run list --workflow "Build Xvfb (x86_64 + ARM64)" --branch main --json databaseId,status,conclusion -q '.[] | select(.status=="completed" and .conclusion=="success") | .databaseId' | head -n1)
+          if [ -z "$run_id" ]; then
+            echo "No successful build found" && exit 1
+          fi
+          echo "Found build run ID: $run_id"
+          echo "run_id=$run_id" >> $GITHUB_OUTPUT
+
+      - name: Download artifacts from that run
+        run: |
+          mkdir artifacts
+          gh run download ${{ steps.get_run.outputs.run_id }} --dir artifacts
+          ls -R artifacts
+
+      - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -35,12 +46,11 @@ jobs:
           draft: false
           prerelease: false
 
-      # Step 2: Upload all artifacts from "artifacts" directory
-      - name: Upload each artifact
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts to release
         run: |
           for file in $(find artifacts -type f); do
             echo "Uploading $file..."
             gh release upload "${{ github.ref_name }}" "$file" --clobber
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
