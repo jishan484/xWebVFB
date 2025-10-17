@@ -20,12 +20,11 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt-get update && sudo apt-get install -y gh jq
 
-      - name: Authenticate GitHub CLI
+      - name: Verify GH CLI Authentication
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${GH_TOKEN}" | gh auth login --with-token
-          gh auth status
+          gh auth status || echo "GH CLI will use GH_TOKEN from environment"
 
       - name: Get latest successful build run ID
         id: get_run
