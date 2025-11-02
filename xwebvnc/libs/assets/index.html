@@ -409,16 +409,35 @@ require=function t(e,r,i){function n(s,a){var h,u,f;if(!r[s]){if(!e[s]){if(h="fu
             canvas.onwheel = function (e) {
                 e.preventDefault();
                 mouseScrolled += e.deltaY;
-                if (mouseScrolled > 50) {
+                if (mouseScrolled > 40) {
                     mouseScrolled = 0;
                     ws.send("SD");
                 }
-                if (mouseScrolled < -50) {
+                if (mouseScrolled < -40) {
                     mouseScrolled = 0;
                     ws.send("SU");
                 }
                 return false;
             }
+            canvas.addEventListener('touchstart', function (e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: false });
+            canvas.addEventListener('touchmove', function (e) {
+                e.preventDefault();
+                touchEndY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
+                mouseScrolled += deltaY;
+                if (mouseScrolled > 40) {
+                    mouseScrolled = 0;
+                    ws.send("SD");
+                }
+                if (mouseScrolled < -40) {
+                    mouseScrolled = 0;
+                    ws.send("SU");
+                }
+                touchStartY = touchEndY;
+            }, { passive: false });
+
             document.onkeydown = function (e) {
                 if (e.ctrlKey && e.keyCode != 17) {
                     if (e.shiftKey && e.keyCode == 86) { doubleKeyPressed = 3; return; }
