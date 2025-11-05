@@ -81,10 +81,6 @@ unsigned char *compress_image_to_jpeg(unsigned char *fb_data,
         cinfo.comp_info[2].v_samp_factor = 1;
     }
 
-    cinfo.optimize_coding = TRUE;       // smaller output, slightly slower
-    cinfo.dct_method = JDCT_FASTEST;    // integer DCT — best for speed
-    cinfo.write_JFIF_header = FALSE;    // optional (saves bytes)
-
     jpeg_start_compress(&cinfo, TRUE);
 
     while (cinfo.next_scanline < cinfo.image_height) {
