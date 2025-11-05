@@ -169,28 +169,15 @@ void XWEBVNC_send_frame(int x, int y, int width, int height) {
   int img_size = 0;
   char data[256];
   
-  if(app_output_quality < 100) {
-        unsigned char *screen_image_rect_ptr = extractRectRGB16or32(global_screen_pointer, x, y, width, height, &screenConf);
-        char *jpeg_data = (char* )compress_image_to_jpeg(screen_image_rect_ptr, screenConf.stride, width, height, &img_size, app_output_quality);
+  unsigned char *screen_image_rect_ptr = extractRectRGB16or32(global_screen_pointer, x, y, width, height, &screenConf);
+  char *jpeg_data = (char* )compress_image_to_jpeg(screen_image_rect_ptr, screenConf.stride, width, height, &img_size, app_output_quality);
 
-        snprintf(
-            data, sizeof(data),
-            "VPD%d %d %d %d %d %d \n", x, y, width, height, 24, img_size
-        );
-        ws_p_sendRaw(global_websocket, 130, data, jpeg_data, strlen(data), img_size, -1);
-        free(jpeg_data);
-  } else {
-        int bytes_per_pixel = screenConf.bit_per_pixel / 8;
-        int frameSize = height * width * bytes_per_pixel;
-
-        getSubImage(x, y, width, height, &screenConf, app_temp_frame_buffer);
-        img_size = LZ4_compress_default((const char *)app_temp_frame_buffer,
-                                        app_buffer, frameSize, app_buffer_size);
-        snprintf(data, sizeof(data), "UPD%d %d %d %d %d %d \n", x, y, width, height,
-                width * bytes_per_pixel, img_size);
-        ws_p_sendRaw(global_websocket, 130, data, app_buffer, strlen(data),
-                    img_size, -1);
-  }
+  snprintf(
+      data, sizeof(data),
+      "VPD%d %d %d %d %d %d \n", x, y, width, height, 24, img_size
+  );
+  ws_p_sendRaw(global_websocket, 130, data, jpeg_data, strlen(data), img_size, -1);
+  free(jpeg_data);
 }
 
 

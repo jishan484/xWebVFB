@@ -48,10 +48,10 @@ unsigned char *extractRectRGB16or32(ScreenPtr pScreen,
 }
 
 unsigned char *compress_image_to_jpeg(unsigned char *fb_data,
-                                        int stride,
-                                        int width, int height,
-                                        int *out_size,
-                                        int quality)
+                                      int stride,
+                                      int width, int height,
+                                      int *out_size,
+                                      int quality)
 {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -61,22 +61,34 @@ unsigned char *compress_image_to_jpeg(unsigned char *fb_data,
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-
     jpeg_mem_dest(&cinfo, &jpeg_data, &jpeg_size);
 
     cinfo.image_width = width;
     cinfo.image_height = height;
-    cinfo.input_components = 4;     // 4 bytes per pixel (B,G,R,X)
-    cinfo.in_color_space = JCS_EXT_BGRX;  // <-- ignore alpha
+    cinfo.input_components = 4;          // B, G, R, X
+    cinfo.in_color_space = JCS_EXT_BGRX; // libjpeg-turbo extension
 
     jpeg_set_defaults(&cinfo);
     jpeg_set_quality(&cinfo, quality, TRUE);
 
+    if (quality >= 100) {
+        // Near-lossless: force no chroma subsampling (4:4:4)
+        cinfo.comp_info[0].h_samp_factor = 2;
+        cinfo.comp_info[0].v_samp_factor = 1;
+        cinfo.comp_info[1].h_samp_factor = 1;
+        cinfo.comp_info[1].v_samp_factor = 1;
+        cinfo.comp_info[2].h_samp_factor = 1;
+        cinfo.comp_info[2].v_samp_factor = 1;
+    }
+
+    cinfo.optimize_coding = TRUE;       // smaller output, slightly slower
+    cinfo.dct_method = JDCT_FASTEST;    // integer DCT — best for speed
+    cinfo.write_JFIF_header = FALSE;    // optional (saves bytes)
+
     jpeg_start_compress(&cinfo, TRUE);
 
     while (cinfo.next_scanline < cinfo.image_height) {
-        unsigned char *row_pointer =
-            fb_data + cinfo.next_scanline * stride;
+        unsigned char *row_pointer = fb_data + cinfo.next_scanline * stride;
         jpeg_write_scanlines(&cinfo, &row_pointer, 1);
     }
 
@@ -84,7 +96,7 @@ unsigned char *compress_image_to_jpeg(unsigned char *fb_data,
     *out_size = (int)jpeg_size;
     jpeg_destroy_compress(&cinfo);
 
-    return jpeg_data;  // caller must free()
+    return jpeg_data;  // must be freed by caller
 }
 
 void getSubImage(int x, int y, int rect_w, int rect_h, XScreenConf *screenConf, char *temp_buffer) {
