@@ -394,11 +394,11 @@
                 touchEndY = e.touches[0].clientY;
                 const deltaY = touchStartY - touchEndY;
                 mouseScrolled += deltaY;
-                if (mouseScrolled > 40) {
+                if (mouseScrolled > 35) {
                     mouseScrolled = 0;
                     ws.send("SD");
                 }
-                if (mouseScrolled < -40) {
+                if (mouseScrolled < -35) {
                     mouseScrolled = 0;
                     ws.send("SU");
                 }
