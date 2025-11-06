@@ -377,11 +377,20 @@
                 }
                 return false;
             }
+            let touchPointData = "";
             canvas.addEventListener('touchstart', function (e) {
+                if (e.touches.length === 0) return;
                 touchStartY = e.touches[0].clientY;
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = Math.floor((touch.clientX) / rect.width * canvas.width);
+                const y = Math.floor((touch.clientY) / rect.height * canvas.height);
+                touchPointData = "M" + x + " " + y + " ";
             }, { passive: false });
             canvas.addEventListener('touchmove', function (e) {
                 e.preventDefault();
+                if (e.touches.length === 0) return;
+                ws.send(touchPointData);
                 touchEndY = e.touches[0].clientY;
                 const deltaY = touchStartY - touchEndY;
                 mouseScrolled += deltaY;
