@@ -216,6 +216,7 @@
     let socket_manual_closed_flag = false;
     let socket_reconnect_retry = 0;
     let wakeLockSentinel = null;
+    let touchPointData = "";
     setTimeout(function () { connect(); }, 2000);
 
     document.addEventListener('paste', handlePaste);
@@ -377,7 +378,6 @@
                 }
                 return false;
             }
-            let touchPointData = "";
             canvas.addEventListener('touchstart', function (e) {
                 if (e.touches.length === 0) return;
                 touchStartY = e.touches[0].clientY;
