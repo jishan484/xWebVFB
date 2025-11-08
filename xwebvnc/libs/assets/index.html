@@ -216,7 +216,6 @@
     let socket_manual_closed_flag = false;
     let socket_reconnect_retry = 0;
     let wakeLockSentinel = null;
-    let touchPointData = "";
     setTimeout(function () { connect(); }, 2000);
 
     document.addEventListener('paste', handlePaste);
@@ -378,20 +377,35 @@
                 }
                 return false;
             }
+            let touchStartY = 0;
+            let lastTouchedOn = 0;
+            let lastTouched = {x:0 , y:0};
             canvas.addEventListener('touchstart', function (e) {
                 if (e.touches.length === 0) return;
                 touchStartY = e.touches[0].clientY;
                 const rect = canvas.getBoundingClientRect();
                 const touch = e.touches[0];
-                const x = Math.floor((touch.clientX) / rect.width * canvas.width);
-                const y = Math.floor((touch.clientY) / rect.height * canvas.height);
-                touchPointData = "M" + x + " " + y + " ";
+                let x_ = Math.floor((touch.clientX) / rect.width * canvas.width);
+                let y_ = Math.floor((touch.clientY) / rect.height * canvas.height);
+                let current = Date.now();
+                if(current - lastTouchedOn < 300) {
+                    if(Math.abs(lastTouched.x - x_) < 150 && Math.abs(lastTouched.y - y_) < 150) {
+                        //double click
+                        e.preventDefault();
+                        data = "C" + lastTouched.x + " " + lastTouched.y + " ";
+                        ws.send(data);
+                        setTimeout(()=>ws.send(data), 100);
+                    }
+                }
+                lastTouched.x = x_;
+                lastTouched.y = y_;
+                lastTouchedOn = Date.now();
             }, { passive: false });
             canvas.addEventListener('touchmove', function (e) {
                 e.preventDefault();
                 if (e.touches.length === 0) return;
-                ws.send(touchPointData);
-                touchEndY = e.touches[0].clientY;
+                ws.send("M" + lastTouched.x + " " + lastTouched.y + " ");
+                let touchEndY = e.touches[0].clientY;
                 const deltaY = touchStartY - touchEndY;
                 mouseScrolled += deltaY;
                 if (mouseScrolled > 33) {
