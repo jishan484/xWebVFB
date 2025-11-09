@@ -385,21 +385,20 @@
                 touchStartY = e.touches[0].clientY;
                 const rect = canvas.getBoundingClientRect();
                 const touch = e.touches[0];
-                let x_ = Math.floor((touch.clientX) / rect.width * canvas.width);
-                let y_ = Math.floor((touch.clientY) / rect.height * canvas.height);
+                let x_ = Math.floor((touch.clientX - rect.left) / rect.width * canvas.width);
+                let y_ = Math.floor((touch.clientY - rect.top) / rect.height * canvas.height);
                 let current = Date.now();
-                if(current - lastTouchedOn < 300) {
+                if(current - lastTouchedOn < 350) {
                     if(Math.abs(lastTouched.x - x_) < 150 && Math.abs(lastTouched.y - y_) < 150) {
-                        //double click
                         e.preventDefault();
                         data = "C" + lastTouched.x + " " + lastTouched.y + " ";
                         ws.send(data);
-                        setTimeout(()=>ws.send(data), 100);
+                        setTimeout(()=>ws.send(data), 111);
                     }
                 }
                 lastTouched.x = x_;
                 lastTouched.y = y_;
-                lastTouchedOn = Date.now();
+                lastTouchedOn = current;
             }, { passive: false });
             canvas.addEventListener('touchmove', function (e) {
                 e.preventDefault();
