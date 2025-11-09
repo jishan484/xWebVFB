@@ -393,7 +393,6 @@
                         e.preventDefault();
                         data = "C" + lastTouched.x + " " + lastTouched.y + " ";
                         ws.send(data);
-                        setTimeout(()=>ws.send(data), 111);
                     }
                 }
                 lastTouched.x = x_;
