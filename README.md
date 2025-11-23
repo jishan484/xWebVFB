@@ -26,7 +26,7 @@
 
 # 💽 Run Released Binary
 1 Download Xvfb or Xorg
-  - Get the binary from the releases page for your platform (x86 or ARM).
+  - Get the binary from the [releases page](https://github.com/jishan484/xWebVNC/releases/latest) for your platform (x86 or ARM).
   - Xvfb is recommended.
 
 2 Run Xvfb or Xorg
