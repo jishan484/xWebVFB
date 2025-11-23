@@ -200,7 +200,7 @@ sig_atomic_t inSignalContext = FALSE;
 static clockid_t clockid;
 #endif
 
-int xwebVNCport = 8080;
+int xwebVNCport = 5000;
 
 OsSigHandlerPtr
 OsSignal(int sig, OsSigHandlerPtr handler)
