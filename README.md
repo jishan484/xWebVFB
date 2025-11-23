@@ -33,9 +33,15 @@
   - Start Xvfb or Xorg as you normally would.
   - By default, WebVNC listens on port 5000.
   - You can change the port using the -web PORT option.
+  - You may need to install libxfont2 and x11-xkb-utils
+    ```sh
+    sudo apt install libxfont2 x11-xkb-utils
+    ```
 
 3 Example Command
-```./Xvfb :1 -screen 0 1280x720x24 -web 80```
+```sh
+./Xvfb :1 -screen 0 1280x720x24 -web 80
+```
 
 4 Xorg Notes
   > - Detailed Documentation for *Xorg* usage is not yet available. Please use Xvfb if you face any issue with Xorg setup.
