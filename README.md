@@ -24,7 +24,25 @@
 - Lightweight remote development environments
 - Embedded Linux systems with browser-based control
 
-# build and run
+# 💽 Run Released Binary
+1 Download Xvfb or Xorg
+  - Get the binary from the releases page for your platform (x86 or ARM).
+  - Xvfb is recommended.
+
+2 Run Xvfb or Xorg
+  - Start Xvfb or Xorg as you normally would.
+  - By default, WebVNC listens on port 5000.
+  - You can change the port using the -web PORT option.
+
+3 Example Command
+```./Xvfb :1 -screen 0 1280x720x24 -web 80```
+
+4 Xorg Notes
+  > - Detailed Documentation for *Xorg* usage is not yet available. Please use Xvfb if you face any issue with Xorg setup.
+  > - It will be updated soon.
+
+
+# 🛠️ build and run from source code
 example command `meson compile -C build && ./build/hw/vfb/Xvfb :1 -screen 0 1280x720x24 -web 80`
 > more details will be added soon
 
