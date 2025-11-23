@@ -15,7 +15,7 @@
 
 
 static int wake_pipe[2];
-int XWEBVNC_http_server_port = 8080;
+int XWEBVNC_http_server_port = 5000;
 
 void ws_wakeup(void);
 void ws_setup_wakepipe(void);
