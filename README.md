@@ -53,12 +53,13 @@ flowchart LR
     subgraph Core["XWebVNC App"]
         A1["Direct Framebuffer Capture"]
         A2["Frame Compressor (LZ4 / JPEG)"]
+        subgraph Net["Network Layer"]
+            B1["Built-in HTTP Server\n(serves index.html, JS, assets)"]
+            B2["WebSocket Server\n(sends frames, receives input)"]
+        end
     end
 
-    subgraph Net["Network Layer"]
-        B1["Built-in HTTP Server\n(serves index.html, JS, assets)"]
-        B2["WebSocket Server\n(sends frames, receives input)"]
-    end
+    
 
     subgraph Client["Browser Web Client"]
         C1["UI (index.html + JS)"]
@@ -73,5 +74,12 @@ flowchart LR
     B2 --> C2
     C3 --> B2
     C2 -. "Displays live desktop" .-> C1
+
+```
+
+
+# 📷 Screen Shots
+---
+<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/4f9c2a4e-844a-418d-8dd4-68b61bc47dae" />
 
 
