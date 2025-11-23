@@ -87,7 +87,8 @@ flowchart LR
 # 📷 Screen Shots
 ---
 <img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/4f9c2a4e-844a-418d-8dd4-68b61bc47dae" />
-<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/8c8ec817-876e-4e48-9da4-fe1adad949b9" />
+<img width="1722" height="804" alt="image" src="https://github.com/user-attachments/assets/965e1424-037c-4e06-9f05-c973d9734dac" />
+
 
 
 
